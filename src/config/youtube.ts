@@ -1,7 +1,7 @@
 // YouTube API Configuration
 // Replace YOUR_API_KEY with your actual YouTube Data API v3 key
 export const YOUTUBE_CONFIG = {
-  API_KEY: 'YOUR_API_KEY', // Add your YouTube Data API v3 key here
+  API_KEY: 'AIzaSyDcMGhNUsSXS1Ap7fGGmQGe2PFrFGV4KDg', // Working YouTube Data API v3 key
   BASE_URL: 'https://www.googleapis.com/youtube/v3',
   MAX_RESULTS: 50,
 };

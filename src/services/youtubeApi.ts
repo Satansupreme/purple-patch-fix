@@ -46,8 +46,9 @@ export class YouTubeService {
   }
 
   async searchTracks(query: string): Promise<Track[]> {
-    if (this.apiKey === 'YOUR_API_KEY') {
-      throw new Error('Please add your YouTube API key in src/config/youtube.ts');
+    if (!this.apiKey || this.apiKey === 'YOUR_API_KEY') {
+      console.warn('YouTube API key not configured, using demo tracks');
+      return [];
     }
 
     try {

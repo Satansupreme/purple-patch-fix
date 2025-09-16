@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useRef, useEffect } from 'react';
 import { Track, PlayerState, UserData, RepeatMode } from '@/types/music';
 import { sampleTracks } from '@/data/sampleTracks';
+import { AudioPlayer } from '@/components/ui/audio-player';
 
 interface MusicContextType {
   playerState: PlayerState;
@@ -199,20 +200,27 @@ function musicReducer(state: MusicState, action: Action): MusicState {
 
 export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(musicReducer, initialState);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Load user data from localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem('musicAppData');
-    if (savedData) {
-      const userData = JSON.parse(savedData);
-      dispatch({ type: 'LOAD_USER_DATA', payload: userData });
+    try {
+      const savedData = localStorage.getItem('musicAppData');
+      if (savedData) {
+        const userData = JSON.parse(savedData);
+        dispatch({ type: 'LOAD_USER_DATA', payload: userData });
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
     }
   }, []);
 
   // Save user data to localStorage
   useEffect(() => {
-    localStorage.setItem('musicAppData', JSON.stringify(state.userData));
+    try {
+      localStorage.setItem('musicAppData', JSON.stringify(state.userData));
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
   }, [state.userData]);
 
   const playTrack = (track: Track, playlist: Track[] = sampleTracks) => {
@@ -221,16 +229,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   };
 
   const pauseTrack = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
     dispatch({ type: 'PAUSE' });
   };
 
   const resumeTrack = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-    }
     dispatch({ type: 'RESUME' });
   };
 
@@ -252,17 +254,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
   const setVolume = (volume: number) => {
     dispatch({ type: 'SET_VOLUME', payload: volume });
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
   };
 
   const seekTo = (progress: number) => {
     dispatch({ type: 'SET_PROGRESS', payload: progress });
-    if (audioRef.current) {
-      const time = (progress / 100) * state.playerState.duration;
-      audioRef.current.currentTime = time;
-    }
   };
 
   const addToLiked = (track: Track) => {
@@ -312,22 +307,29 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   return (
     <MusicContext.Provider value={value}>
       {children}
-      <audio
-        ref={audioRef}
-        src={state.playerState.currentTrack?.audioUrl}
-        onLoadedMetadata={() => {
-          if (audioRef.current) {
-            dispatch({ type: 'SET_DURATION', payload: audioRef.current.duration });
-          }
-        }}
-        onTimeUpdate={() => {
-          if (audioRef.current) {
-            const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+      {state.playerState.currentTrack && (
+        <AudioPlayer
+          src={state.playerState.currentTrack.audioUrl}
+          isPlaying={state.playerState.isPlaying}
+          volume={state.playerState.volume}
+          onLoadedMetadata={(duration) => {
+            dispatch({ type: 'SET_DURATION', payload: duration });
+          }}
+          onTimeUpdate={(currentTime, progress) => {
             dispatch({ type: 'SET_PROGRESS', payload: progress });
-          }
-        }}
-        autoPlay={state.playerState.isPlaying}
-      />
+          }}
+          onEnded={() => {
+            if (state.playerState.repeat === 'track') {
+              playTrack(state.playerState.currentTrack!, state.playerState.queue);
+            } else {
+              nextTrack();
+            }
+          }}
+          onError={(error) => {
+            console.error('Audio playback error:', error);
+          }}
+        />
+      )}
     </MusicContext.Provider>
   );
 }
@@ -335,6 +337,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 export function useMusic() {
   const context = useContext(MusicContext);
   if (!context) {
+    console.error('useMusic called outside MusicProvider. Check component tree.');
     throw new Error('useMusic must be used within a MusicProvider');
   }
   return context;

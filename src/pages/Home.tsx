@@ -1,5 +1,6 @@
 import { Play } from 'lucide-react';
 import { useMusic } from '@/contexts/MusicContext';
+import { TrackList } from '@/components/common/TrackList';
 import { sampleTracks } from '@/data/sampleTracks';
 import { Button } from '@/components/ui/button';
 
