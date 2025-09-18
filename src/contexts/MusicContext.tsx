@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useRef, useEffect } from 
 import { Track, PlayerState, UserData, RepeatMode } from '@/types/music';
 import { sampleTracks } from '@/data/sampleTracks';
 import { AudioPlayer } from '@/components/ui/audio-player';
+import { youtubeService } from '@/services/youtubeApi';
 
 interface MusicContextType {
   playerState: PlayerState;
@@ -223,9 +224,32 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userData]);
 
-  const playTrack = (track: Track, playlist: Track[] = sampleTracks) => {
+  const playTrack = async (track: Track, playlist: Track[] = sampleTracks) => {
+    console.log('Playing track:', track.title);
+    
+    // Extract YouTube ID from audioUrl and get streaming URL
+    let audioUrl = track.audioUrl;
+    const youtubeMatch = audioUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    
+    if (youtubeMatch) {
+      try {
+        // Try to get a better streaming URL from our backend
+        const streamUrl = await youtubeService.getAudioStreamUrl(youtubeMatch[1]);
+        audioUrl = streamUrl;
+      } catch (error) {
+        console.warn('Failed to get streaming URL, using original:', error);
+      }
+    }
+    
     const index = playlist.findIndex(t => t.id === track.id);
-    dispatch({ type: 'PLAY_TRACK', payload: { track, queue: playlist, index } });
+    dispatch({ 
+      type: 'PLAY_TRACK', 
+      payload: { 
+        track: { ...track, audioUrl },
+        queue: playlist, 
+        index: Math.max(0, index)
+      } 
+    });
   };
 
   const pauseTrack = () => {

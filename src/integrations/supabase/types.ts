@@ -14,7 +14,184 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      playlist_tracks: {
+        Row: {
+          added_at: string
+          id: string
+          playlist_id: string
+          position: number
+          track_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          playlist_id: string
+          position?: number
+          track_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_tracks_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_tracks_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracks: {
+        Row: {
+          album: string | null
+          artist: string
+          cover_url: string | null
+          created_at: string
+          duration: number
+          genre: string | null
+          id: string
+          title: string
+          updated_at: string
+          view_count: number | null
+          year: number | null
+          youtube_id: string
+        }
+        Insert: {
+          album?: string | null
+          artist: string
+          cover_url?: string | null
+          created_at?: string
+          duration?: number
+          genre?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          view_count?: number | null
+          year?: number | null
+          youtube_id: string
+        }
+        Update: {
+          album?: string | null
+          artist?: string
+          cover_url?: string | null
+          created_at?: string
+          duration?: number
+          genre?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+          year?: number | null
+          youtube_id?: string
+        }
+        Relationships: []
+      }
+      user_liked_tracks: {
+        Row: {
+          id: string
+          liked_at: string
+          track_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          liked_at?: string
+          track_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          liked_at?: string
+          track_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_liked_tracks_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_listening_history: {
+        Row: {
+          duration_listened: number | null
+          id: string
+          played_at: string
+          track_id: string
+          user_id: string
+        }
+        Insert: {
+          duration_listened?: number | null
+          id?: string
+          played_at?: string
+          track_id: string
+          user_id: string
+        }
+        Update: {
+          duration_listened?: number | null
+          id?: string
+          played_at?: string
+          track_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_listening_history_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
