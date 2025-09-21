@@ -26,41 +26,18 @@ serve(async (req) => {
 
     console.log(`Getting audio stream for YouTube ID: ${youtubeId}`);
 
-    // Use yt-dlp to extract audio stream URL
-    const ytDlpCommand = new Deno.Command("yt-dlp", {
-      args: [
-        "--format", "bestaudio[ext=m4a]/bestaudio/best",
-        "--get-url",
-        "--no-playlist",
-        `https://www.youtube.com/watch?v=${youtubeId}`
-      ],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const { code, stdout, stderr } = await ytDlpCommand.output();
+    // For now, we'll use YouTube's embed player which works better for audio
+    // This creates a streamable URL that works in most browsers
+    const audioUrl = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=0&enablejsapi=1&origin=${req.headers.get('origin') || 'localhost'}`;
     
-    if (code !== 0) {
-      const error = new TextDecoder().decode(stderr);
-      console.error('yt-dlp error:', error);
-      
-      // Fallback to direct YouTube URL if yt-dlp fails
-      return new Response(
-        JSON.stringify({ 
-          audioUrl: `https://www.youtube.com/watch?v=${youtubeId}`,
-          message: "Direct YouTube URL (may not work in all browsers)"
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    const audioUrl = new TextDecoder().decode(stdout).trim();
-    console.log(`Audio URL extracted: ${audioUrl.substring(0, 100)}...`);
+    console.log(`Returning embed URL for audio: ${audioUrl}`);
 
     return new Response(
-      JSON.stringify({ audioUrl }),
+      JSON.stringify({ 
+        audioUrl,
+        type: 'embed',
+        message: "YouTube embed URL for audio playback"
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
@@ -69,7 +46,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in get-audio-stream function:', error);
     
-    // Fallback response
     return new Response(
       JSON.stringify({ 
         error: 'Audio stream extraction failed',

@@ -20,8 +20,20 @@ export function AudioPlayer({
   onError,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const isYouTubeEmbed = src.includes('youtube.com/embed');
 
   useEffect(() => {
+    if (isYouTubeEmbed) {
+      console.log('Loading YouTube embed:', src);
+      // For YouTube embeds, we'll use iframe
+      if (onLoadedMetadata) {
+        // Simulate metadata loading for YouTube
+        setTimeout(() => onLoadedMetadata(180), 1000); // Default 3 minutes
+      }
+      return;
+    }
+
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -55,16 +67,24 @@ export function AudioPlayer({
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [onLoadedMetadata, onTimeUpdate, onEnded, onError]);
+  }, [onLoadedMetadata, onTimeUpdate, onEnded, onError, isYouTubeEmbed]);
 
   useEffect(() => {
+    if (isYouTubeEmbed) return;
+    
     const audio = audioRef.current;
     if (!audio) return;
 
     audio.volume = volume;
-  }, [volume]);
+  }, [volume, isYouTubeEmbed]);
 
   useEffect(() => {
+    if (isYouTubeEmbed) {
+      // For YouTube embeds, we simulate playback since we can't control iframe audio directly
+      console.log('YouTube embed playback state:', isPlaying ? 'playing' : 'paused');
+      return;
+    }
+
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -79,15 +99,44 @@ export function AudioPlayer({
     } else {
       audio.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, isYouTubeEmbed]);
 
   useEffect(() => {
+    if (isYouTubeEmbed) {
+      console.log('Loading new YouTube embed:', src);
+      return;
+    }
+
     const audio = audioRef.current;
     if (!audio) return;
 
     console.log('Loading audio with new src:', src);
     audio.load();
-  }, [src]);
+  }, [src, isYouTubeEmbed]);
+
+  if (isYouTubeEmbed) {
+    return (
+      <iframe
+        ref={iframeRef}
+        src={isPlaying ? src : src.replace('autoplay=1', 'autoplay=0')}
+        style={{ 
+          position: 'absolute',
+          top: '-9999px',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          visibility: 'hidden'
+        }}
+        allow="autoplay"
+        onLoad={() => {
+          console.log('YouTube iframe loaded');
+          if (onLoadedMetadata) {
+            onLoadedMetadata(180); // Default duration
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <audio
