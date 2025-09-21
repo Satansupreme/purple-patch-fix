@@ -227,19 +227,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const playTrack = async (track: Track, playlist: Track[] = sampleTracks) => {
     console.log('Playing track:', track.title);
     
-    // Extract YouTube ID from audioUrl and get streaming URL
+    // Use the audio URL directly - no need to fetch streaming URLs for working audio files
     let audioUrl = track.audioUrl;
-    const youtubeMatch = audioUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    
-    if (youtubeMatch) {
-      try {
-        // Try to get a better streaming URL from our backend
-        const streamUrl = await youtubeService.getAudioStreamUrl(youtubeMatch[1]);
-        audioUrl = streamUrl;
-      } catch (error) {
-        console.warn('Failed to get streaming URL, using original:', error);
-      }
-    }
     
     const index = playlist.findIndex(t => t.id === track.id);
     dispatch({ 
