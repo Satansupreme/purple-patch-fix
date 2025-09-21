@@ -39,6 +39,8 @@ export function AudioPlayer({
     };
 
     const handleError = (e: Event) => {
+      console.error('Audio error:', e);
+      console.error('Audio src:', audio.src);
       onError?.(e);
     };
 
@@ -67,7 +69,13 @@ export function AudioPlayer({
     if (!audio) return;
 
     if (isPlaying) {
-      audio.play().catch(console.error);
+      console.log('Trying to play audio with src:', audio.src);
+      audio.play().catch((error) => {
+        console.error('Audio play error:', error);
+        console.error('Audio src:', audio.src);
+        console.error('Audio readyState:', audio.readyState);
+        console.error('Audio networkState:', audio.networkState);
+      });
     } else {
       audio.pause();
     }
@@ -77,6 +85,7 @@ export function AudioPlayer({
     const audio = audioRef.current;
     if (!audio) return;
 
+    console.log('Loading audio with new src:', src);
     audio.load();
   }, [src]);
 
